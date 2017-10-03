@@ -1,0 +1,30 @@
+{
+  "name": "gcic-mqtt-client",
+  "version": "0.0.1",
+  "description": "MQTT client for Google Cloud IoT Core",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/teifip/gcic-mqtt-client.git"
+  },
+  "keywords": [
+    "Google Cloud Platform",
+    "Google Cloud IoT Core",
+    "IoT",
+    "MQTT",
+    "client"
+  ],
+  "engines": {
+    "node": ">=6.6.0"
+  },
+  "bugs": {
+    "url": "https://github.com/teifip/gcic-mqtt-client/issues"
+  },
+  "homepage": "https://github.com/teifip/gcic-mqtt-client#readme",
+  "author": "Paolo Fiorini <teifip@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "mqtt": "^2.13.0",
+    "node-webtokens": "^0.1.1"
+  }
+}
