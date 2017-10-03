@@ -1,6 +1,6 @@
 {
   "name": "gcic-mqtt-client",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "MQTT client for Google Cloud IoT Core",
   "main": "index.js",
   "repository": {

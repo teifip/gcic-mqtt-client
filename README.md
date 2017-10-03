@@ -5,7 +5,7 @@ This helper enhances the [MQTT.js](https://www.npmjs.com/package/mqtt) library w
 - Configuration parameters specific to the [Google Cloud IoT Core](https://cloud.google.com/iot-core/) solution;
 - Methods to publish device events and state updates in a straightforward manner;
 - Automatic subscription to device configuration updates;
-- Support for auto-renewal of the device authentication token ([JWT](https://tools.ietf.org/html/rfc7519) used as MQTT client password).
+- Support for auto-renewal of the device token ([JWT](https://tools.ietf.org/html/rfc7519) used as MQTT client password).
 
 All the options, methods and events supported by the [MQTT.js](https://www.npmjs.com/package/mqtt) library remain accessible, so that taking advantage of this helper does not cause any loss of functionality.
 
@@ -163,12 +163,16 @@ client.publishState(JSON.stringify(state));
 
 **client.changePrivateKey(newKey)**
 
-To be prepared
+Available to replace the private key used to sign tokens. The `newKey` must be in [PEM](https://en.wikipedia.org/wiki/Privacy-enhanced_Electronic_Mail) format, passed either as string or as buffer, and must be consistent with the `tokenAlgorithm` selected at client creation time (i.e. of the same type as the key being replaced).
+
+The key replacement can be performed at any time, but takes effect at the next token auto-renewal.
 
 Example:
 
 ```javascript
-// To be prepared
+const newKey = fs.readFileSync('./ec_private2.pem');
+
+client.changePrivateKey(newKey);
 ```
 
 **client.on('disconnect', (tokenExpired) => { });**

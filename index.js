@@ -109,7 +109,16 @@ module.exports = function(options) {
   });
   // Extend MQTT client with changePrivateKey method
   client.changePrivateKey = function(newPrivateKey) {
-
+    if (newPrivateKey instanceof Buffer) {
+      newPrivateKey = newPrivateKey.toString();
+    } else if (typeof newPrivateKey !== 'string') {
+      throw new TypeError('Invalid new private key');
+    }
+    if (!newPrivateKey.includes('-----BEGIN') ||
+        !newPrivateKey.includes('KEY-----')) {
+      throw new TypeError('New private key must be in PEM format');
+    }
+    client.options.privateKey = newPrivateKey;
   }
   // Return MQTT client
   return client;
