@@ -1,11 +1,11 @@
 # gcic-mqtt-client
 
-Simple helper to build [Google Cloud IoT Core](https://cloud.google.com/iot-core/) [MQTT](http://mqtt.org) clients with the renowned [MQTT.js](https://www.npmjs.com/package/mqtt) library.
+Simple helper to build [Google Cloud IoT Core](https://cloud.google.com/iot-core/) MQTT clients with the renowned [MQTT.js](https://www.npmjs.com/package/mqtt) library.
 This helper enhances the [MQTT.js](https://www.npmjs.com/package/mqtt) library with:
 - Configuration parameters specific to the [Google Cloud IoT Core](https://cloud.google.com/iot-core/) solution;
 - Methods to publish device events and state updates in a straightforward manner;
 - Automatic subscription to device configuration updates;
-- Support for auto-renewal of the device authentication token ([JWT]( https://tools.ietf.org/html/rfc7519) used as [MQTT](http://mqtt.org) client password).
+- Support for auto-renewal of the device authentication token ([JWT](https://tools.ietf.org/html/rfc7519) used as MQTT client password).
 
 All the options, methods and events supported by the [MQTT.js](https://www.npmjs.com/package/mqtt) library remain accessible, so that taking advantage of this helper does not cause any loss of functionality.
 
@@ -91,12 +91,12 @@ The following table lists the properties of the `options` object:
 |:------------------|:------------|
 | `projectId`       | REQUIRED - String; identifies the [Google Cloud IoT Core](https://cloud.google.com/iot-core/) project. Example: `my-iot-project`
 | `registryId`      | REQUIRED - String; identifies the [Google Cloud IoT Core](https://cloud.google.com/iot-core/) device registry. Example: `my-device-registry`
-| `deviceId`        | REQUIRED - String; identifies the [Google Cloud IoT Core](https://cloud.google.com/iot-core/) device. Example: `my-device-00134`
+| `deviceId`        | REQUIRED - String; identifies the [Google Cloud IoT Core](https://cloud.google.com/iot-core/) device. Example: `my-device`
 | `cloudRegion`     | REQUIRED - String; identifies the [Google Cloud IoT Core](https://cloud.google.com/iot-core/) cloud region. Example: `us-central1`
 | `privateKey`      | REQUIRED - Device private key in [PEM](https://en.wikipedia.org/wiki/Privacy-enhanced_Electronic_Mail) format, passed either as string or as buffer; must be consistent with the selected `tokenAlgorithm` (see next)
 | `tokenAlgorithm`  | OPTIONAL - String with `RS256` as default value; cryptographic algorithm for signing the token used as MQTT client password; [Google Cloud IoT Core](https://cloud.google.com/iot-core/) currently supports choice between `RS256` (2048-bit RSA key) and `EC256` (P-256 EC key, identified as `prime256v1` in [OpenSSL](https://www.openssl.org/))
-| `tokenLifecycle`  | OPTIONAL - Integer with `3600` as default value; specifies the time validity in seconds of the device token; the default value corresponds to one hour; [Google Cloud IoT Core](https://cloud.google.com/iot-core/) automatically disconnects devices after their tokens have expired; a grace period of approximately 10 minutes is observed to compensate for possible clock skews
-| `onConfiguration` | OPTIONAL - Function; callback invoked whenever [Google Cloud IoT Core](https://cloud.google.com/iot-core/) publishes configuration information for the device. If `onConfiguration` is omitted, then the MQTT client does not subscribe to configuration updates. Instead, if `onConfiguration` is specified, then the MQTT client automatically subscribes to configuration updates; upon every update, the MQTT client acknowledges reception and invokes the `onConfiguration` callback with `(configuration)` as argument, where `configuration` is the received configuration passed as buffer
+| `tokenLifecycle`  | OPTIONAL - Integer with `3600` as default value; specifies the time validity of the device token in seconds; the default value corresponds to one hour; [Google Cloud IoT Core](https://cloud.google.com/iot-core/) automatically disconnects devices after their tokens have expired; a grace period of approximately 10 minutes is observed to compensate for possible clock skews
+| `onConfiguration` | OPTIONAL - Function; callback invoked whenever [Google Cloud IoT Core](https://cloud.google.com/iot-core/) publishes configuration information for the device. If `onConfiguration` is omitted, then the MQTT client does not subscribe to configuration updates. Instead, if `onConfiguration` is specified, then the MQTT client automatically subscribes to configuration updates; upon every update, the MQTT client acknowledges reception and invokes the `onConfiguration` callback with `(configuration)` as argument; `configuration` is the received configuration passed as buffer
 | `host`            | OPTIONAL - String with `mqtt.googleapis.com` as default; identifies the [Google Cloud IoT Core](https://cloud.google.com/iot-core/) MQTT bridge host
 | `port`            | OPTIONAL - Integer with `8883` as default; identifies the [Google Cloud IoT Core](https://cloud.google.com/iot-core/) MQTT bridge port number
 | `keepalive`       | OPTIONAL - Integer with `60` as default value; specifies the interval in seconds at which the MQTT client sends [PINGREQ](http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/csprd02/mqtt-v3.1.1-csprd02.html#_Toc385349817) packets. The `keepalive` value should be tuned considering the trade-off between rapid detection of client disconnections vs amount of background traffic generated. Note that [PINGREQ](http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/csprd02/mqtt-v3.1.1-csprd02.html#_Toc385349817) packets count against [Google Cloud IoT Core](https://cloud.google.com/iot-core/) billing  
@@ -163,12 +163,12 @@ client.publishState(JSON.stringify(state));
 
 **client.changePrivateKey(newKey)**
 
-Text
+To be prepared
 
 Example:
 
 ```javascript
-
+// To be prepared
 ```
 
 **client.on('disconnect', (tokenExpired) => { });**
@@ -181,7 +181,7 @@ In general, a disconnection reported with `tokenExpired` equal to `true` may sim
 
 The `token_renewal` event is emitted whenever the token auto-renewal function supported by this helper module takes care of generating a new token. The `expires` argument is an integer number that indicates the expiration time of the new token expressed as UNIX timestamp in seconds.
 
-The following example summarizes the set of events that may be reasonable to monitor. The definition of the corresponding event handlers is application specific.
+The following example summarizes the set of MQTT client events that may be reasonable to monitor. The definition of the corresponding event handlers is application specific.
 
 ```javascript
 client.on('connect', () => {
@@ -207,8 +207,8 @@ client.on('token_renewal', (expires) => {
 
 ### Token auto-renewal
 
-Each device that connects to the [Google Cloud IoT Core](https://cloud.google.com/iot-core/) MQTT bridge uses a [JSON Web Token](https://tools.ietf.org/html/rfc7519) as MQTT password. This helper module supports a token auto-renewal function intended to ensure prompt token replacement and device reconnection whenever a device gets disconnected because its token has expired. Specifically, whenever the device experiences a disconnection - if one of the following conditions hold true - a new token is generated before attempting reconnection:
+Each device that connects to the [Google Cloud IoT Core](https://cloud.google.com/iot-core/) MQTT bridge uses a [JSON Web Token](https://tools.ietf.org/html/rfc7519) as MQTT password. This helper module supports a token auto-renewal function intended to ensure prompt token replacement and device reconnection whenever a device gets disconnected because its token has expired. Specifically, whenever the device experiences a disconnection - if one of the following conditions holds true - a new token is generated before attempting reconnection:
 - The current token has expired;
 - The remaining validity time of the current token is less than half of the configured token lifecycle (`tokenLifecycle` property of the `options` object).
 
-The second point above has the intent to proactively replace the token when a disconnection due to causes such as network problems is experienced, thus moving farther in the future the need to disconnect/reconnect to replace the token. The criterion of waiting that at least half of the token lifecycle has been consumed protects against repeated token replacements in presence of unstable network conditions.
+The second point above has the intent to proactively replace the token when a disconnection due to causes such as network problems is experienced, thus moving farther in the future the need to disconnect/reconnect to replace the token. The criterion of waiting that at least half of the token lifecycle has been consumed protects against repeated token replacements in presence frequent disconnections, e.g. because of unstable network conditions.
