@@ -1,5 +1,6 @@
 const mqtt = require('mqtt');
 const jwt = require('node-webtokens');
+
 const SUPPORTED_ALGORITHMS = ['RS256', 'ES256'];
 
 module.exports = function(options) {

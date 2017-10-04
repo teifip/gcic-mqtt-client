@@ -42,12 +42,12 @@ const options = {
   deviceId: 'my-device',
   cloudRegion: 'us-central1',
   privateKey: fs.readFileSync('./rsa_private.pem'),
-  onConfiguration: processConfiguration
+  onConfiguration: processConfiguration // <===
 };
 
 const client = mqtt(options);
 
-function(configuration) {
+function processConfiguration(configuration) {
   /* Process configuration data, possibly
      replying with a device state update */
 }
@@ -94,7 +94,7 @@ The following table lists the properties of the `options` object:
 | `deviceId`        | REQUIRED - String; identifies the [Google Cloud IoT Core](https://cloud.google.com/iot-core/) device. Example: `my-device`
 | `cloudRegion`     | REQUIRED - String; identifies the [Google Cloud IoT Core](https://cloud.google.com/iot-core/) cloud region. Example: `us-central1`
 | `privateKey`      | REQUIRED - Device private key in [PEM](https://en.wikipedia.org/wiki/Privacy-enhanced_Electronic_Mail) format, passed either as string or as buffer; must be consistent with the selected `tokenAlgorithm` (see next)
-| `tokenAlgorithm`  | OPTIONAL - String with `RS256` as default value; cryptographic algorithm for signing the token used as MQTT client password; [Google Cloud IoT Core](https://cloud.google.com/iot-core/) currently supports choice between `RS256` (2048-bit RSA key) and `EC256` (P-256 EC key, identified as `prime256v1` in [OpenSSL](https://www.openssl.org/))
+| `tokenAlgorithm`  | OPTIONAL - String with `RS256` as default value; cryptographic algorithm for signing the token used as MQTT client password; [Google Cloud IoT Core](https://cloud.google.com/iot-core/) currently supports choice between `RS256` (2048-bit RSA key) and `EC256` (P-256 EC key, identified as `prime256v1` in [OpenSSL](https://www.openssl.org/)). Please consider that generating `EC256` signatures is way faster than generating `RS256` signatures
 | `tokenLifecycle`  | OPTIONAL - Integer with `3600` as default value; specifies the time validity of the device token in seconds; the default value corresponds to one hour; [Google Cloud IoT Core](https://cloud.google.com/iot-core/) automatically disconnects devices after their tokens have expired; a grace period of approximately 10 minutes is observed to compensate for possible clock skews
 | `onConfiguration` | OPTIONAL - Function; callback invoked whenever [Google Cloud IoT Core](https://cloud.google.com/iot-core/) publishes configuration information for the device. If `onConfiguration` is omitted, then the MQTT client does not subscribe to configuration updates. Instead, if `onConfiguration` is specified, then the MQTT client automatically subscribes to configuration updates; upon every update, the MQTT client acknowledges reception and invokes the `onConfiguration` callback with `(configuration)` as argument; `configuration` is the received configuration passed as buffer
 | `host`            | OPTIONAL - String with `mqtt.googleapis.com` as default; identifies the [Google Cloud IoT Core](https://cloud.google.com/iot-core/) MQTT bridge host
@@ -142,6 +142,8 @@ const data = { 'sensor1': 'motion_detected' };
 mqtt.publishEvent(JSON.stringify(data), 1, 'alerts');
 ```
 
+[Google Cloud IoT Core](https://cloud.google.com/iot-core/) includes the subfolder name when mapping events from the MQTT bridge to [Google Cloud Pub/Sub](https://cloud.google.com/pubsub/).
+
 **client.publishState(state[, qos])**
 
 Used to publish device state. Arguments are defined as follows:
@@ -175,9 +177,11 @@ const newKey = fs.readFileSync('./ec_private2.pem');
 client.changePrivateKey(newKey);
 ```
 
+[Google Cloud IoT Core](https://cloud.google.com/iot-core/) enables key rotation by allowing up to three public keys or certificates to be associated with an individual device at any given time.
+
 **client.on('disconnect', (tokenExpired) => { });**
 
-The `disconnect` event is intended to be used in lieu of the `offline` event supported by the [MQTT.js](https://www.npmjs.com/package/mqtt) library. The `disconnect` event is emitted every time an `offline` event is emitted, but the `disconnect` event comes with the indication of whether the token was found expired (`tokenExpired` equal to `true`) or not (`tokenExpired` equal to `false`).
+The `disconnect` event is intended to be used in lieu of the `offline` event supported by the [MQTT.js](https://www.npmjs.com/package/mqtt) library. The `disconnect` event is emitted every time an `offline` event is emitted, but the `disconnect` event comes with the indication of whether the token was found expired or not (`tokenExpired` boolean flag).
 
 In general, a disconnection reported with `tokenExpired` equal to `true` may simply be the symptom of a periodic token expiration, and be automatically solved by the token auto-renewal function supported by this helper module. However, please consider that [Google Cloud IoT Core](https://cloud.google.com/iot-core/) observes a relatively long grace period (approximately 10 minutes) before disconnecting a device whose token has expired. This creates a time window in which the `disconnect` event is reported with `tokenExpired` equal to `true` even if the actual cause of disconnection was not the token expiration itself. Additional insight may be obtained by listening to `error` events in addition to `disconnect` events.
 
