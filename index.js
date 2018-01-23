@@ -64,7 +64,7 @@ module.exports = function(options) {
     let topic = `/devices/${client.options.deviceId}/config`;
     client.subscribe(topic, { qos: 1 });
     client.on('message', (topic, message) => {
-      // Single subscription; no need to check topic
+      // Client has single subscription; no need to check topic
       client.options.onConfiguration(message);
     });
   }
