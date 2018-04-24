@@ -53,6 +53,7 @@ module.exports = function(options) {
                      `/locations/${options.cloudRegion}` +
                      `/registries/${options.registryId}` +
                      `/devices/${options.deviceId}`;
+  options.username = options.username || 'gcic-mqtt-client';
   options.password = jwt.generate(options.tokenAlgorithm, {
     aud: options.projectId,
     exp: options.tokenExpiration
