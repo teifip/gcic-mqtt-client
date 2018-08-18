@@ -40,7 +40,7 @@ module.exports = function(options) {
   if (options.tokenLifecycle === undefined) {
     options.tokenLifecycle = 3600; // 1 hour
   } else if (!Number.isInteger(options.tokenLifecycle) ||
-             options.tokenLifecycle <= 0) {
+             options.tokenLifecycle <= 0 || options.tokenLifecycle > 86400) {
     throw new TypeError('Invalid tokenLifecycle value');
   }
   // Prepare options for MTTQ client

@@ -94,8 +94,8 @@ The following table lists the properties of the `options` object:
 | `deviceId`        | REQUIRED - String; identifies the [Google Cloud IoT Core](https://cloud.google.com/iot-core/) device. Example: `my-device`
 | `cloudRegion`     | REQUIRED - String; identifies the [Google Cloud IoT Core](https://cloud.google.com/iot-core/) cloud region. Example: `us-central1`
 | `privateKey`      | REQUIRED - Device private key in [PEM](https://en.wikipedia.org/wiki/Privacy-enhanced_Electronic_Mail) format, passed either as string or as buffer; must be consistent with the selected `tokenAlgorithm` (see next)
-| `tokenAlgorithm`  | OPTIONAL - String with `RS256` as default value; cryptographic algorithm for signing the token used as MQTT client password; [Google Cloud IoT Core](https://cloud.google.com/iot-core/) currently supports choice between `RS256` (2048-bit RSA key) and `EC256` (P-256 EC key, identified as `prime256v1` in [OpenSSL](https://www.openssl.org/)). Please consider that generating `EC256` signatures is way faster than generating `RS256` signatures
-| `tokenLifecycle`  | OPTIONAL - Integer with `3600` as default value; specifies the time validity of the device token in seconds; the default value corresponds to one hour; [Google Cloud IoT Core](https://cloud.google.com/iot-core/) automatically disconnects devices after their tokens have expired; a grace period of approximately 10 minutes is observed to compensate for possible clock skews
+| `tokenAlgorithm`  | OPTIONAL - String with `RS256` as default value; cryptographic algorithm for signing the token used as MQTT client password; [Google Cloud IoT Core](https://cloud.google.com/iot-core/) currently supports choice between `RS256` (2048-bit RSA key) and `ES256` (P-256 EC key, identified as `prime256v1` in [OpenSSL](https://www.openssl.org/)). Please consider that generating `ES256` signatures is way faster than generating `RS256` signatures
+| `tokenLifecycle`  | OPTIONAL - Integer with `3600` as default value and `86400` as maximum allowed value; specifies the time validity of the device token in seconds; the default value corresponds to one hour; [Google Cloud IoT Core](https://cloud.google.com/iot-core/) automatically disconnects devices after their tokens have expired; a grace period of approximately 10 minutes is observed to compensate for possible clock skews
 | `onConfiguration` | OPTIONAL - Function; callback invoked whenever [Google Cloud IoT Core](https://cloud.google.com/iot-core/) publishes configuration information for the device. If `onConfiguration` is omitted, then the MQTT client does not subscribe to configuration updates. Instead, if `onConfiguration` is specified, then the MQTT client automatically subscribes to configuration updates. Upon every update, the MQTT client acknowledges reception and invokes the `onConfiguration` callback with `(configuration)` as argument; `configuration` is the received configuration passed as buffer
 | `host`            | OPTIONAL - String with `mqtt.googleapis.com` as default; identifies the [Google Cloud IoT Core](https://cloud.google.com/iot-core/) MQTT bridge host
 | `port`            | OPTIONAL - Integer with `8883` as default; identifies the [Google Cloud IoT Core](https://cloud.google.com/iot-core/) MQTT bridge port number
@@ -116,7 +116,7 @@ const options = {
   registryId: 'my-registry',
   deviceId: 'my-device',
   cloudRegion: 'us-central1',
-  tokenAlgorithm: 'EC256',
+  tokenAlgorithm: 'ES256',
   tokenLifecycle: 86400, // 24 hours
   privateKey: fs.readFileSync('./ec_private.pem'),
   keepalive: 300, // 5 minutes
