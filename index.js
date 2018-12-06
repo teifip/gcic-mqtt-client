@@ -64,11 +64,22 @@ module.exports = function(options) {
   if (typeof options.onConfiguration === 'function') {
     let topic = `/devices/${client.options.deviceId}/config`;
     client.subscribe(topic, { qos: 1 });
-    client.on('message', (topic, message) => {
-      // Client has single subscription; no need to check topic
-      client.options.onConfiguration(message);
-    });
   }
+  // Subscribe to commands if onCommand callback is specified
+  if (typeof options.onCommand === 'function') {
+    let topic = `/devices/${client.options.deviceId}/commands/#`;
+    let qos = options.qosCommands === 1 ? 1 : 0;
+    client.subscribe(topic, { qos: qos });
+  }
+  // Confgure the message listener
+  client.on('message', (topic, message) => {
+    let topicParts = topic.split('/');
+    if (topicParts[3] === 'config') {
+      client.options.onConfiguration(message);
+    } else if (topicParts[3] === 'commands') {
+      client.options.onCommand(message, topicParts[4] || null);
+    }
+  });
   // Extend MQTT client with publishState method
   client.publishState = function(state, qos = 0) {
     if (qos !== 0 && qos !== 1) {

@@ -4,7 +4,7 @@ Simple helper to build [Google Cloud IoT Core](https://cloud.google.com/iot-core
 This helper enhances the [MQTT.js](https://www.npmjs.com/package/mqtt) library with:
 - Configuration parameters specific to the [Google Cloud IoT Core](https://cloud.google.com/iot-core/) solution;
 - Methods to publish device events and state updates in a straightforward manner;
-- Automatic subscription to device configuration updates;
+- Automatic subscription to device configuration updates and commands;
 - Support for auto-renewal of the device token ([JWT](https://tools.ietf.org/html/rfc7519) used as MQTT client password).
 
 All the options, methods and events supported by the [MQTT.js](https://www.npmjs.com/package/mqtt) library remain accessible, so that taking advantage of this helper does not cause any loss of functionality.
@@ -53,6 +53,27 @@ function processConfiguration(configuration) {
 }
 ```
 
+Similarly, the client can automatically subscribe to commands and invoke a callback every time a command is dispatched to the device.
+
+```javascript
+const mqtt = require('gcic-mqtt-client');
+
+const options = {
+  projectId: 'my-project',
+  registryId: 'my-registry',
+  deviceId: 'my-device',
+  cloudRegion: 'us-central1',
+  privateKey: fs.readFileSync('./rsa_private.pem'),
+  onCommand: processCommand // <============
+};
+
+const client = mqtt(options);
+
+function processCommand(command, subFolder) {
+  /* Process the command */
+}
+```
+
 All the events supported by the [MQTT.js](https://www.npmjs.com/package/mqtt) library remain accessible. For example:
 
 ```javascript
@@ -97,6 +118,8 @@ The following table lists the properties of the `options` object:
 | `tokenAlgorithm`  | OPTIONAL - String with `RS256` as default value; cryptographic algorithm for signing the token used as MQTT client password; [Google Cloud IoT Core](https://cloud.google.com/iot-core/) currently supports choice between `RS256` (2048-bit RSA key) and `ES256` (P-256 EC key, identified as `prime256v1` in [OpenSSL](https://www.openssl.org/)). Please consider that generating `ES256` signatures is way faster than generating `RS256` signatures
 | `tokenLifecycle`  | OPTIONAL - Integer with `3600` as default value and `86400` as maximum allowed value; specifies the time validity of the device token in seconds; the default value corresponds to one hour; [Google Cloud IoT Core](https://cloud.google.com/iot-core/) automatically disconnects devices after their tokens have expired; a grace period of approximately 10 minutes is observed to compensate for possible clock skews
 | `onConfiguration` | OPTIONAL - Function; callback invoked whenever [Google Cloud IoT Core](https://cloud.google.com/iot-core/) publishes configuration information for the device. If `onConfiguration` is omitted, then the MQTT client does not subscribe to configuration updates. Instead, if `onConfiguration` is specified, then the MQTT client automatically subscribes to configuration updates. Upon every update, the MQTT client acknowledges reception and invokes the `onConfiguration` callback with `(configuration)` as argument; `configuration` is the received configuration passed as buffer
+| `onCommand`       | OPTIONAL - Function; callback invoked whenever [Google Cloud IoT Core](https://cloud.google.com/iot-core/) sends a command to the device. If `onCommand` is omitted, then the MQTT client does not subscribe to commands. Instead, if `onCommand` is specified, then the MQTT client automatically subscribes to commands. Subscription to commands is performed with QoS equal to `0` unless the option `qosCommand` is present and equal to `1`. Whenever a command is received, the MQTT client invokes the `onCommand` callback with `(command, subFolder)` as arguments; `command` is the received command passed as buffer; `subFolder` is `null` if the command was published to `/devices/{deviceId}/commands` or a string if the command was published to `/devices/{deviceId}/commands/subFolder`
+| `qosCommands`     | OPTIONAL - Integer equal to either `0` (at most once) or `1` (at least once), and with `0` as default value. The configured value determines the QoS with which the client subscribes to receive commands
 | `host`            | OPTIONAL - String with `mqtt.googleapis.com` as default; identifies the [Google Cloud IoT Core](https://cloud.google.com/iot-core/) MQTT bridge host
 | `port`            | OPTIONAL - Integer with `8883` as default; identifies the [Google Cloud IoT Core](https://cloud.google.com/iot-core/) MQTT bridge port number
 | `keepalive`       | OPTIONAL - Integer with `60` as default value; specifies the interval in seconds at which the MQTT client sends [PINGREQ](http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/csprd02/mqtt-v3.1.1-csprd02.html#_Toc385349817) packets. The `keepalive` value should be tuned considering the trade-off between rapid detection of client disconnections vs amount of background traffic generated. Note that [PINGREQ](http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/csprd02/mqtt-v3.1.1-csprd02.html#_Toc385349817) packets count against [Google Cloud IoT Core](https://cloud.google.com/iot-core/) billing  
@@ -120,7 +143,8 @@ const options = {
   tokenLifecycle: 86400, // 24 hours
   privateKey: fs.readFileSync('./ec_private.pem'),
   keepalive: 300, // 5 minutes
-  onConfiguration: processConfiguration // callback to be declared
+  onConfiguration: processConfiguration, // callback to be declared
+  onCommand: processCommand // callback to be declared
 };
 ```
 
@@ -131,7 +155,7 @@ Once the MQTT client has been created, all the methods and events supported by t
 Used to publish device telemetry events. Arguments are defined as follows:
 - `event` - event data, either as string or as buffer;
 - `qos` - either `0` (at most once) or `1` (at least once), with `0` as default;
-- `subFolder` - subfolder to which the event should be published; if `subFolder` is omitted, then the event is published to `/devices/{device-id}/events`; if `subFolder` is specified, then the event is published to `/devices/{device-id}/events/subFolder`.
+- `subFolder` - subfolder to which the event should be published; if `subFolder` is omitted, then the event is published to `/devices/{deviceId}/events`; if `subFolder` is specified, then the event is published to `/devices/{deviceId}/events/subFolder`.
 
 Example:
 

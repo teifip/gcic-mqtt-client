@@ -1,6 +1,6 @@
 {
   "name": "gcic-mqtt-client",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "MQTT client for Google Cloud IoT Core",
   "main": "index.js",
   "repository": {
@@ -24,7 +24,7 @@
   "author": "Paolo Fiorini <teifip@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "mqtt": "^2.18.3",
+    "mqtt": "^2.18.8",
     "node-webtokens": "^1.0.0"
   }
 }
