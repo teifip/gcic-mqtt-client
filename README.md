@@ -31,7 +31,7 @@ client.publishEvent(data);
 client.publishState(state);
 ```
 
-The client can automatically subscribe to device configuration updates, acknowledge the update and invoke a callback every time device configuration is dispatched to the device.
+The client can automatically subscribe to device configuration updates and invoke a callback every time device configuration is dispatched to the device. Similarly, the client can automatically subscribe to commands and invoke a callback every time a command is dispatched to the device.
 
 ```javascript
 const mqtt = require('gcic-mqtt-client');
@@ -42,7 +42,8 @@ const options = {
   deviceId: 'my-device',
   cloudRegion: 'us-central1',
   privateKey: fs.readFileSync('./rsa_private.pem'),
-  onConfiguration: processConfiguration // <============
+  onConfiguration: processConfiguration, // <--- callback
+  onCommand: processCommand              // <--- callback
 };
 
 const client = mqtt(options);
@@ -51,25 +52,8 @@ function processConfiguration(configuration) {
   /* Process configuration data, possibly
      replying with a device state update */
 }
-```
 
-Similarly, the client can automatically subscribe to commands and invoke a callback every time a command is dispatched to the device.
-
-```javascript
-const mqtt = require('gcic-mqtt-client');
-
-const options = {
-  projectId: 'my-project',
-  registryId: 'my-registry',
-  deviceId: 'my-device',
-  cloudRegion: 'us-central1',
-  privateKey: fs.readFileSync('./rsa_private.pem'),
-  onCommand: processCommand // <============
-};
-
-const client = mqtt(options);
-
-function processCommand(command, subFolder) {
+function processCommand(command, subfolder) {
   /* Process the command */
 }
 ```
@@ -110,23 +94,23 @@ The following table lists the properties of the `options` object:
 
 | Property          | Description |
 |:------------------|:------------|
-| `projectId`       | REQUIRED - String; identifies the [Google Cloud IoT Core](https://cloud.google.com/iot-core/) project. Example: `my-iot-project`
-| `registryId`      | REQUIRED - String; identifies the [Google Cloud IoT Core](https://cloud.google.com/iot-core/) device registry. Example: `my-device-registry`
-| `deviceId`        | REQUIRED - String; identifies the [Google Cloud IoT Core](https://cloud.google.com/iot-core/) device. Example: `my-device`
-| `cloudRegion`     | REQUIRED - String; identifies the [Google Cloud IoT Core](https://cloud.google.com/iot-core/) cloud region. Example: `us-central1`
-| `privateKey`      | REQUIRED - Device private key in [PEM](https://en.wikipedia.org/wiki/Privacy-enhanced_Electronic_Mail) format, passed either as string or as buffer; must be consistent with the selected `tokenAlgorithm` (see next)
-| `tokenAlgorithm`  | OPTIONAL - String with `RS256` as default value; cryptographic algorithm for signing the token used as MQTT client password; [Google Cloud IoT Core](https://cloud.google.com/iot-core/) currently supports choice between `RS256` (2048-bit RSA key) and `ES256` (P-256 EC key, identified as `prime256v1` in [OpenSSL](https://www.openssl.org/)). Please consider that generating `ES256` signatures is way faster than generating `RS256` signatures
-| `tokenLifecycle`  | OPTIONAL - Integer with `3600` as default value and `86400` as maximum allowed value; specifies the time validity of the device token in seconds; the default value corresponds to one hour; [Google Cloud IoT Core](https://cloud.google.com/iot-core/) automatically disconnects devices after their tokens have expired; a grace period of approximately 10 minutes is observed to compensate for possible clock skews
-| `onConfiguration` | OPTIONAL - Function; callback invoked whenever [Google Cloud IoT Core](https://cloud.google.com/iot-core/) publishes configuration information for the device. If `onConfiguration` is omitted, then the MQTT client does not subscribe to configuration updates. Instead, if `onConfiguration` is specified, then the MQTT client automatically subscribes to configuration updates. Upon every update, the MQTT client acknowledges reception and invokes the `onConfiguration` callback with `(configuration)` as argument; `configuration` is the received configuration passed as buffer
-| `onCommand`       | OPTIONAL - Function; callback invoked whenever [Google Cloud IoT Core](https://cloud.google.com/iot-core/) sends a command to the device. If `onCommand` is omitted, then the MQTT client does not subscribe to commands. Instead, if `onCommand` is specified, then the MQTT client automatically subscribes to commands. Subscription to commands is performed with QoS equal to `0` unless the option `qosCommand` is present and equal to `1`. Whenever a command is received, the MQTT client invokes the `onCommand` callback with `(command, subFolder)` as arguments; `command` is the received command passed as buffer; `subFolder` is `null` if the command was published to `/devices/{deviceId}/commands` or a string if the command was published to `/devices/{deviceId}/commands/subFolder`
-| `qosCommands`     | OPTIONAL - Integer equal to either `0` (at most once) or `1` (at least once), and with `0` as default value. The configured value determines the QoS with which the client subscribes to receive commands
-| `host`            | OPTIONAL - String with `mqtt.googleapis.com` as default; identifies the [Google Cloud IoT Core](https://cloud.google.com/iot-core/) MQTT bridge host
-| `port`            | OPTIONAL - Integer with `8883` as default; identifies the [Google Cloud IoT Core](https://cloud.google.com/iot-core/) MQTT bridge port number
-| `keepalive`       | OPTIONAL - Integer with `60` as default value; specifies the interval in seconds at which the MQTT client sends [PINGREQ](http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/csprd02/mqtt-v3.1.1-csprd02.html#_Toc385349817) packets. The `keepalive` value should be tuned considering the trade-off between rapid detection of client disconnections vs amount of background traffic generated. Note that [PINGREQ](http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/csprd02/mqtt-v3.1.1-csprd02.html#_Toc385349817) packets count against [Google Cloud IoT Core](https://cloud.google.com/iot-core/) billing  
-| `reschedulePings` | OPTIONAL - Boolean with `true` as default; controls whether the transmission of [PINGREQ](http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/csprd02/mqtt-v3.1.1-csprd02.html#_Toc385349817) packets is rescheduled after sending other packets so that outgoing traffic is minimized
-| `reconnectPeriod` | OPTIONAL - Integer with `1000` as default; specifies the time interval in milliseconds between consecutive reconnection attempts
-| `connectTimeout`  | OPTIONAL - Integer with `30000` as default; specifies the maximum time in milliseconds waited before a [CONNACK](http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/csprd02/mqtt-v3.1.1-csprd02.html#_Toc385349769) packet is received
-| `queueQoSZero`    | OPTIONAL - Boolean with `true` as default; controls whether outgoing messages with QoS=0 are queued or not during periods of disconnection
+| `projectId`       | REQUIRED - String; identifies the Google Cloud IoT project
+| `cloudRegion`     | REQUIRED - String; identifies the Google Cloud IoT Core cloud region
+| `registryId`      | REQUIRED - String; identifies the Google Cloud IoT Core device registry
+| `deviceId`        | REQUIRED - String; identifies the Google Cloud IoT Core device
+| `privateKey`      | REQUIRED - String or buffer; device private key in PEM format; must be consistent with the selected `tokenAlgorithm`
+| `tokenAlgorithm`  | OPTIONAL - String with `RS256` as default value; cryptographic algorithm for signing the token used as MQTT client password; Google Cloud IoT Core currently supports choice between `RS256` (2048-bit RSA key) and `ES256` (P-256 EC key). When choosing between the two algorithms, consider that generating `ES256` signatures is way faster than generating `RS256` signatures
+| `tokenLifecycle`  | OPTIONAL - Integer with `3600` as default value and `86400` as maximum allowed value; specifies the time validity of the device token in seconds; Google Cloud IoT Core automatically disconnects devices after their tokens have expired; a grace period of approximately 10 minutes is observed to compensate for possible clock skews
+| `onConfiguration` | OPTIONAL - Callback invoked whenever Google Cloud IoT Core publishes configuration information for the device. The MQTT client subscribes to configuration updates only if `onConfiguration` is specified. At every configuration update the MQTT client invokes the `onConfiguration` callback with `(configuration)` as argument; `configuration` is the received configuration passed as buffer
+| `onCommand`       | OPTIONAL - Callback invoked whenever Google Cloud IoT Core sends a command to the device. The MQTT client subscribes to commands only if `onCommand` is specified. At every command the MQTT client invokes the `onCommand` callback with `(command, subfolder)` as arguments; `command` is the received command passed as buffer; `subfolder` is `null` if the command was published to `/devices/{deviceId}/commands` or a string if the command was published to `/devices/{deviceId}/commands/{subfolder}`
+| `qosCommands`     | OPTIONAL - Integer equal to either `0` (at most once, default value) or `1` (at least once); determines the QoS with which the client subscribes to commands
+| `host`            | OPTIONAL - String with `mqtt.googleapis.com` as default; identifies the Google Cloud IoT Core MQTT bridge host
+| `port`            | OPTIONAL - Integer with `8883` as default; identifies the Google Cloud IoT Core MQTT bridge port number
+| `keepalive`       | OPTIONAL - Integer with `60` as default value; specifies the interval in seconds at which the MQTT client sends PINGREQ packets. The `keepalive` value should be tuned considering the trade-off between rapid detection of client disconnections vs amount of background traffic generated. Note that PINGREQ packets count against Google Cloud IoT Core billing  
+| `reschedulePings` | OPTIONAL - Boolean with `true` as default value; controls whether the transmission of PINGREQ packets is rescheduled after sending other packets so that outgoing traffic is minimized
+| `reconnectPeriod` | OPTIONAL - Integer with `1000` as default value; specifies the time interval in milliseconds between consecutive reconnection attempts
+| `connectTimeout`  | OPTIONAL - Integer with `30000` as default value; specifies the maximum time in milliseconds waited before a CONNACK packet is received
+| `queueQoSZero`    | OPTIONAL - Boolean with `true` as default value; controls whether outgoing messages with QoS=0 are queued or not during periods of disconnection
 | `localAddress`    | OPTIONAL - String; identifies the local network address the MQTT client should connect from; when omitted, no binding is established and the MQTT client is allowed to use any available network interface
 | `incomingStore`   | OPTIONAL - Support for alternative implementations of the message store; refer to the documentation of the [MQTT.js](https://www.npmjs.com/package/mqtt) library for details
 | `outgoingStore`   | OPTIONAL - Same as above
@@ -150,12 +134,12 @@ const options = {
 
 Once the MQTT client has been created, all the methods and events supported by the [MQTT.js](https://www.npmjs.com/package/mqtt) library are accessible. In addition, this helper provides support for the following methods and events:
 
-**client.publishEvent(event[, qos][, subFolder])**
+**client.publishEvent(event[, qos][, subfolder])**
 
 Used to publish device telemetry events. Arguments are defined as follows:
 - `event` - event data, either as string or as buffer;
 - `qos` - either `0` (at most once) or `1` (at least once), with `0` as default;
-- `subFolder` - subfolder to which the event should be published; if `subFolder` is omitted, then the event is published to `/devices/{deviceId}/events`; if `subFolder` is specified, then the event is published to `/devices/{deviceId}/events/subFolder`.
+- `subfolder` - subfolder to which the event should be published; if `subfolder` is omitted, then the event is published to `/devices/{deviceId}/events`; if `subfolder` is specified, then the event is published to `/devices/{deviceId}/events/subfolder`.
 
 Example:
 
@@ -166,7 +150,7 @@ const data = { 'sensor1': 'motion_detected' };
 mqtt.publishEvent(JSON.stringify(data), 1, 'alerts');
 ```
 
-[Google Cloud IoT Core](https://cloud.google.com/iot-core/) includes the subfolder name when mapping events from the MQTT bridge to [Google Cloud Pub/Sub](https://cloud.google.com/pubsub/).
+Google Cloud IoT Core includes the subfolder name when mapping events from the MQTT bridge to Google Cloud Pub/Sub.
 
 **client.publishState(state[, qos])**
 
@@ -189,9 +173,9 @@ client.publishState(JSON.stringify(state));
 
 **client.changePrivateKey(newKey)**
 
-Available to replace the private key used to sign tokens. The `newKey` must be in [PEM](https://en.wikipedia.org/wiki/Privacy-enhanced_Electronic_Mail) format, passed either as string or as buffer, and must be consistent with the `tokenAlgorithm` selected at client creation time (i.e. of the same type as the key being replaced).
+Used to replace the private key used to sign tokens. The `newKey` must be in PEM format, passed either as string or as buffer, and must be consistent with the `tokenAlgorithm` selected at client creation time (i.e. of the same type as the key being replaced).
 
-The key replacement can be performed at any time, but takes effect at the next token auto-renewal.
+The key replacement can be initiated at any time, but takes effect at the next token auto-renewal.
 
 Example:
 
@@ -201,13 +185,13 @@ const newKey = fs.readFileSync('./ec_private2.pem');
 client.changePrivateKey(newKey);
 ```
 
-[Google Cloud IoT Core](https://cloud.google.com/iot-core/) enables key rotation by allowing up to three public keys or certificates to be associated with an individual device at any given time.
+Google Cloud IoT Core enables key rotation by allowing up to three public keys or certificates to be associated with an individual device at any given time.
 
 **client.on('disconnect', (tokenExpired) => { });**
 
 The `disconnect` event is intended to be used in lieu of the `offline` event supported by the [MQTT.js](https://www.npmjs.com/package/mqtt) library. The `disconnect` event is emitted every time an `offline` event is emitted, but the `disconnect` event comes with the indication of whether the token was found expired or not (`tokenExpired` boolean flag).
 
-In general, a disconnection reported with `tokenExpired` equal to `true` may simply be the symptom of a periodic token expiration, and be automatically solved by the token auto-renewal function supported by this helper module. However, please consider that [Google Cloud IoT Core](https://cloud.google.com/iot-core/) observes a relatively long grace period (approximately 10 minutes) before disconnecting a device whose token has expired. This creates a time window in which the `disconnect` event is reported with `tokenExpired` equal to `true` even if the actual cause of disconnection was not the token expiration itself. Additional insight may be obtained by listening to `error` events in addition to `disconnect` events.
+In general, a disconnection reported with `tokenExpired` equal to `true` may simply be the symptom of a periodic token expiration, and be automatically solved by the token auto-renewal function supported by this helper module. However, please consider that Google Cloud IoT Core observes a relatively long grace period (approximately 10 minutes) before disconnecting a device whose token has expired. This creates a time window in which the `disconnect` event is reported with `tokenExpired` equal to `true` even if the actual cause of disconnection was not the token expiration itself. Additional insight may be obtained by listening to `error` events in addition to `disconnect` events.
 
 **client.on('token_renewal', (expires) => { });**
 
@@ -239,8 +223,8 @@ client.on('token_renewal', (expires) => {
 
 ### Token auto-renewal
 
-Each device that connects to the [Google Cloud IoT Core](https://cloud.google.com/iot-core/) MQTT bridge uses a [JSON Web Token](https://tools.ietf.org/html/rfc7519) as MQTT password. This helper module supports a token auto-renewal function intended to ensure prompt token replacement and device reconnection whenever a device gets disconnected because its token has expired. Specifically, whenever the device experiences a disconnection - if one of the following conditions holds true - a new token is generated before attempting reconnection:
+Each device that connects to the Google Cloud IoT Core MQTT bridge uses a [JSON Web Token](https://tools.ietf.org/html/rfc7519) as MQTT password. This helper module supports a token auto-renewal function intended to ensure prompt token replacement and device reconnection whenever a device gets disconnected because its token has expired. Specifically, whenever the device experiences a disconnection - if one of the following conditions holds true - a new token is generated before attempting reconnection:
 - The current token has expired;
-- The remaining validity time of the current token is less than half of the configured token lifecycle (`tokenLifecycle` property of the `options` object).
+- The remaining validity time of the current token is less than half of the configured token `tokenLifecycle` period.
 
-The second point above has the intent to proactively replace the token when a disconnection due to causes such as network problems is experienced, thus moving farther in the future the need to disconnect/reconnect to replace the token. The criterion of waiting that at least half of the token lifecycle has been consumed protects against repeated token replacements in presence frequent disconnections, e.g. because of unstable network conditions.
+The second point above has the intent to proactively replace the token when a disconnection due to causes such as network problems is experienced, thus moving farther in the future the need to disconnect/reconnect to replace the token. The criterion of waiting until at least half of the token lifecycle has been consumed protects against repeated token replacements in presence frequent disconnections, e.g. because of unstable network conditions.

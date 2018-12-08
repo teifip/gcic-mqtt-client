@@ -89,19 +89,19 @@ module.exports = function(options) {
     client.publish(topic, state, { qos: qos });
   }
   // Extend MQTT client with publishEvent method
-  client.publishEvent = function(data, qos = 0, subFolder) {
-    if (typeof qos === 'string' && subFolder === undefined) {
+  client.publishEvent = function(data, qos = 0, subfolder) {
+    if (typeof qos === 'string' && subfolder === undefined) {
       qos = 0;
-      subFolder = arguments[1];
+      subfolder = arguments[1];
     } else if (qos !== 0 && qos !== 1) {
       throw new TypeError('Invalid qos value');
     }
-    if (subFolder !== undefined && typeof subFolder !== 'string') {
-      throw new TypeError('Invalid subFolder value');
+    if (subfolder !== undefined && typeof subfolder !== 'string') {
+      throw new TypeError('Invalid subfolder value');
     }
-    let topic = subFolder === undefined
+    let topic = subfolder === undefined
               ? `/devices/${client.options.deviceId}/events`
-              : `/devices/${client.options.deviceId}/events/${subFolder}`;
+              : `/devices/${client.options.deviceId}/events/${subfolder}`;
     client.publish(topic, data, { qos: qos });
   }
   // MQTT client password (token) auto-renewal
