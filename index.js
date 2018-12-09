@@ -63,7 +63,8 @@ module.exports = function(options) {
   // Subscribe to config updates if onConfiguration callback is specified
   if (typeof options.onConfiguration === 'function') {
     let topic = `/devices/${client.options.deviceId}/config`;
-    client.subscribe(topic, { qos: 1 });
+    let qos = options.qosConfiguration === 1 ? 1 : 0;
+    client.subscribe(topic, { qos: qos });
   }
   // Subscribe to commands if onCommand callback is specified
   if (typeof options.onCommand === 'function') {
